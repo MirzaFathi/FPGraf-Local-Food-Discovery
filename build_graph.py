@@ -9,31 +9,25 @@ from langchain_core.prompts import PromptTemplate
 # Load environment variables dari file .env
 load_dotenv(override=True)
 
-# ==========================================
 # 1. KONEKSI KE NEO4J
-# ==========================================
 driver = GraphDatabase.driver(
     os.getenv("NEO4J_URI"), 
     auth=(os.getenv("NEO4J_USER"), os.getenv("NEO4J_PASSWORD"))
 )
 
-# ==========================================
 # 2. SETUP QWEN LLM (VIA DASHSCOPE)
-# ==========================================
 # Konfigurasi Custom API Host dari Model Studio
 dashscope.base_http_api_url = 'https://ws-qhebnre9dgsdfa13.ap-southeast-1.maas.aliyuncs.com/api/v1'
 dashscope.api_key = os.getenv("DASHSCOPE_API_KEY")
 
-# Temperature diset rendah (0.1) agar AI fokus pada ekstraksi fakta, bukan berkreasi
 llm = Tongyi(
     model="qwen-max", 
     temperature=0.1, 
     dashscope_api_key=os.getenv("DASHSCOPE_API_KEY")
 )
 
-# ==========================================
+
 # 3. PROMPT TEMPLATE
-# ==========================================
 ekstraksi_prompt = PromptTemplate(
     input_variables=["review_text"],
     template="""Tugasmu adalah menganalisis ulasan restoran berikut dan mengekstrak entitas penting.
@@ -56,9 +50,8 @@ ekstraksi_prompt = PromptTemplate(
 # Gabungkan prompt dan LLM menjadi satu chain eksekusi
 chain_ekstraksi = ekstraksi_prompt | llm
 
-# ==========================================
+
 # 4. FUNGSI UNTUK INSERT KE GRAPH DB
-# ==========================================
 def simpan_ke_neo4j(nama_tempat_makan, daerah, kategori, price_level, rating, rating_count, daftar_menu, daftar_fasilitas, sentimen):
     # Skip jika ini ulasan kosong
     if not nama_tempat_makan: return 
@@ -80,8 +73,7 @@ def simpan_ke_neo4j(nama_tempat_makan, daerah, kategori, price_level, rating, ra
     
     // 4. ENTITAS PRICE LEVEL
     WITH w
-    CALL {
-        WITH w
+    CALL (w) {
         WITH w, $price_level AS new_price
         WHERE new_price <> 'Tidak Diketahui'
         MERGE (p:PriceLevel {nama: new_price})
@@ -118,9 +110,8 @@ def simpan_ke_neo4j(nama_tempat_makan, daerah, kategori, price_level, rating, ra
                     daftar_menu=daftar_menu, daftar_fasilitas=daftar_fasilitas, sentimen=sentimen)
     print(f"[SUCCESS] Tersimpan ke Graph: {nama_tempat_makan}")
 
-# ==========================================
+
 # 5. FUNGSI EKSEKUSI UTAMA (MAIN LOOP)
-# ==========================================
 def proses_data_ulasan():
     # Blok try-except ini mengantisipasi pembacaan data.
     # Jika menggunakan data CSV, pastikan script memanggil kolom 'contents'.
@@ -168,7 +159,7 @@ def proses_data_ulasan():
         if not teks_ulasan:
             continue
             
-        print(f"\nMemproses: {tempat_makan}...")
+        print(f"\nMemproses: {tempat_makan}")
         
         # 1. Masukkan teks ulasan ke LLM
         hasil_ekstraksi = chain_ekstraksi.invoke({"review_text": teks_ulasan})
@@ -199,6 +190,11 @@ def proses_data_ulasan():
         if price_level == "Tidak Diketahui" and estimasi_harga in ["Murah", "Sedang", "Mahal"]:
             price_level = estimasi_harga
             
+        print(f"Menu: {', '.join(daftar_menu) if daftar_menu else 'Tidak ada'}")
+        print(f"Fasilitas: {', '.join(daftar_fasilitas) if daftar_fasilitas else 'Tidak ada'}")
+        print(f"Sentimen: {sentimen}")
+        print(f"Harga: {price_level}")
+        
         # 3. Lempar datanya ke Neo4j
         simpan_ke_neo4j(tempat_makan, daerah, kategori, price_level, rating, rating_count, daftar_menu, daftar_fasilitas, sentimen)
 
