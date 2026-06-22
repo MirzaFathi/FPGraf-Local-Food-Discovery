@@ -16,13 +16,13 @@ Proyek ini dibangun menggunakan pendekatan arsitektur **GraphRAG** dengan kompon
     - **Text-to-Cypher**: Menerjemahkan bahasa manusia (pertanyaan user) menjadi query database Cypher.
 3. **Orkestrasi AI**: Menggunakan framework **LangChain** (`Neo4jGraph`, `GraphCypherQAChain`) untuk merangkai alur sistem tanya jawab.
 4. **Alur Data**:
-    - `data_restoran.csv` -> Dibaca oleh Pandas -> Diekstrak oleh LLM -> Disimpan ke Neo4j sebagai graf -> Ditanya/diquery oleh pengguna melalui Chatbot.
+    - Ekstraksi Tempat & Informasi -> `data_restoran.csv` -> Dibaca oleh Pandas -> Diekstrak oleh LLM -> Disimpan ke Neo4j sebagai graf -> Ditanya/diquery oleh pengguna melalui Chatbot.
 
 ---
 
 ## 🛠️ Instalasi
 
-1. Pastikan Anda sudah menginstal **Python 3.8+** di sistem.
+1. Pastikan Anda sudah menginstal **Python 3.8+** di sistem. Project ini menggunakan **Python 3.10.11**
 2. Clone atau buka direktori proyek ini.
 3. Install semua dependensi Python yang dibutuhkan melalui file `requirements.txt` dengan menjalankan:
    ```bash
@@ -64,6 +64,7 @@ Jalankan script berikut:
 ```bash
 python extract_places.py
 ```
+Queries dapat diatur sesuai keinginan.
 
 ### Langkah 2: Membangun Graph Database (ETL)
 Sebelum bisa bertanya ke chatbot, kita harus mengekstrak data restoran dari file CSV ke dalam graph database Neo4j.
@@ -79,8 +80,11 @@ Setelah database graph berhasil dibangun, jalankan agen chatbot AI interaktif di
 python chatbot.py
 ```
 Anda bisa mulai memberikan pertanyaan secara natural menggunakan bahasa Indonesia. 
+
 **Contoh pertanyaan:**
 - *"Sebutkan tempat makan di Keputih yang murah dan ada wifi!"*
 - *"Ada rekomendasi makanan yang enak tapi harganya sedang?"*
 
 *(Ketik `exit`, `quit`, atau `keluar` untuk mematikan chatbot).*
+
+Generate Code untuk project ini dibantu oleh AI Model Gemini 3.1 Pro (High). Prompt yang digunakan cenderung untuk memperbaiki error yang sulit dilihat seperti perbaikan Syntax Error, logika sistem, hingga merapikan output, dan pengembangan lebih lanjut.
