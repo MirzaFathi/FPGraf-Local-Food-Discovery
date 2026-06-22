@@ -32,7 +32,6 @@ class GraphRAGPipeline:
             dashscope_api_key=os.getenv("DASHSCOPE_API_KEY")
         )
         
-        # LLM untuk generate jawaban bahasa manusia (temperature=0.1 agar bahasanya luwes)
         self.qa_llm = Tongyi(
             model="qwen-max", 
             temperature=0.1, 
@@ -49,16 +48,20 @@ Schema:
 
 Note:
 - The graph has TempatMakan, Daerah, Kategori, PriceLevel, Menu, Fasilitas, Sentimen.
-- If asking about 'murah' or 'mahal', check (w:TempatMakan)-[:MEMILIKI_HARGA]->(PriceLevel).
-- If asking about 'wifi', 'nyaman', check (w:TempatMakan)-[:MEMILIKI_FASILITAS]->(Fasilitas).
-- If asking about location, check (w:TempatMakan)-[:BERLOKASI_DI]->(Daerah).
+- If asking about 'murah' or 'mahal', check (w:TempatMakan)-[:MEMILIKI_HARGA]->(p:PriceLevel).
+- If asking about 'wifi', 'nyaman', check (w:TempatMakan)-[:MEMILIKI_FASILITAS]->(f:Fasilitas).
+- If asking about location, check (w:TempatMakan)-[:BERLOKASI_DI]->(d:Daerah).
+- If asking about 'enak' or 'lezat', do NOT search for 'enak' in Sentimen. Just rely on ORDER BY Rating DESC.
+- Sentimen ONLY contains 'Positif', 'Negatif', or 'Netral'. If needed, check (w:TempatMakan)-[:MENDAPAT_SENTIMEN]->(s:Sentimen) WHERE s.nama = 'Positif'.
 - CRITICAL: Always use case-insensitive CONTAINS for text search instead of exact equals (e.g. WHERE toLower(m.nama) CONTAINS 'ayam').
+- CRITICAL: NEVER use pattern matching inside functions like toLower() or in WHERE conditions directly. Always MATCH the node first and check its property (e.g. `MATCH (w)-[:MENDAPAT_SENTIMEN]->(s:Sentimen) WHERE toLower(s.nama) CONTAINS 'positif'`).
 - CRITICAL: DO NOT just return the TempatMakan name! You MUST return rich details so the AI can answer nicely. 
   Always end your query with something like:
   OPTIONAL MATCH (w)-[:MENYAJIKAN]->(m:Menu)
   OPTIONAL MATCH (w)-[:MEMILIKI_FASILITAS]->(f:Fasilitas)
   RETURN w.nama AS Nama, w.rating AS Rating, w.rating_count AS Ulasan, collect(DISTINCT m.nama)[..5] AS Menu, collect(DISTINCT f.nama)[..5] AS Fasilitas
   ORDER BY Rating DESC LIMIT 5
+- CRITICAL: In ORDER BY, you MUST use the exact alias from RETURN (e.g., `ORDER BY Rating DESC LIMIT 5`). DO NOT use `w.Rating` or `w.rating`.
 - Be flexible! If multiple conditions are too strict, use OR.
 
 Question: {question}

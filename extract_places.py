@@ -17,6 +17,9 @@ def get_restaurants():
     
     queries = [
         "Tempat makan di Kampus ITS Surabaya",
+        "Tempat makan dekat kampus Institut Teknologi Sepuluh Nopember",
+        "Tempat makan dekat kecamatan Sukolilo",
+        "Cafe dekat kampus Institut Teknologi Sepuluh Nopember",
         "Tempat makan di Keputih Surabaya",
         "Cafe Kampus ITS Surabaya",
         "Restoran daerah ITS Surabaya",
