@@ -41,7 +41,7 @@ Pastikan Anda memiliki file `.env` di dalam folder proyek dengan format berikut:
 # API Key untuk LLM Qwen (DashScope API)
 DASHSCOPE_API_KEY=sk-xxxxxx
 
-# API Key Google Maps (digunakan jika menjalankan script ekstraksi lokasi)
+# API Key Google Maps/Places API
 GOOGLE_MAPS_API_KEY=AIzaSyxxxxxx
 
 # Konfigurasi Koneksi Neo4j Database
@@ -73,7 +73,7 @@ python build_graph.py
 ```
 *Tunggu beberapa saat. Script ini akan memproses teks ulasan menggunakan LLM untuk menemukan Menu, Fasilitas, dan Sentimen, lalu menginjeksikannya ke dalam Neo4j.*
 
-### Langkah 2: Menjalankan Chatbot Interaktif
+### Langkah 3: Menjalankan Chatbot Interaktif
 Setelah database graph berhasil dibangun, jalankan agen chatbot AI interaktif di terminal:
 ```bash
 python chatbot.py
